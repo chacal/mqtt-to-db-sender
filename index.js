@@ -3,13 +3,18 @@ const mqtt = require('mqtt')
 const influxDbSender = require('./influxdb-sender')
 
 const MQTT_BROKER = process.env.MQTT_BROKER ? process.env.MQTT_BROKER : 'mqtt://ha-opi'
+const INFLUX_WRITE_THROTTLE = 2000     // Keep at least this much time in ms between saving event from _the same instance & tag_
 
 startMqttClient(MQTT_BROKER)
   .flatMapLatest(mqttClient => {
     mqttClient.subscribe('/sensor/+/+/state')
     return Bacon.fromEvent(mqttClient, 'message', (topic, message) => ({ topic, message }))
   })
-  .onValue(({topic, message}) => influxDbSender.saveEvent(JSON.parse(message.toString())))
+  .map('.message')
+  .map(JSON.parse)
+  .groupBy(event => event.instance + event.tag)                                                  // Group events by instance & tag
+  .flatMap(eventsByInstanceAndTag => eventsByInstanceAndTag.throttle(INFLUX_WRITE_THROTTLE))     // Throttle each instance + tag group individuall
+  .onValue(influxDbSender.saveEvent)
 
 function startMqttClient(brokerUrl) {
   const client = mqtt.connect(brokerUrl)
