@@ -10,7 +10,7 @@
   "license": "ISC",
   "dependencies": {
     "baconjs": "^0.7.89",
-    "influx": "^5.0.4",
+    "influx": "^4.2.3",
     "lodash": "^4.17.4",
     "mqtt": "^2.4.0"
   }
