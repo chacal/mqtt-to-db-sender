@@ -2,7 +2,7 @@ const Bacon = require('baconjs')
 const mqtt = require('mqtt')
 const influxDbSender = require('./influxdb-sender')
 
-const MQTT_BROKER = process.env.MQTT_BROKER ? process.env.MQTT_BROKER : 'mqtt://ha-opi'
+const MQTT_BROKER = process.env.MQTT_BROKER ? process.env.MQTT_BROKER : 'mqtt://mqtt-home.chacal.online'
 const INFLUX_WRITE_THROTTLE = 2000     // Keep at least this much time in ms between saving event from _the same instance & tag_
 
 startMqttClient(MQTT_BROKER)
