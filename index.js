@@ -18,7 +18,10 @@ startMqttClient(MQTT_BROKER)
 
 function startMqttClient(brokerUrl) {
   const client = mqtt.connect(brokerUrl)
+  client.on('connect', () => console.log('Connected to MQTT server'))
+  client.on('offline', () => console.log('Disconnected from MQTT server'))
+  client.on('error', () => console.log('MQTT client error', e))
+
   return Bacon.fromEvent(client, 'connect').first()
-    .doAction(() => console.log("Connected to MQTT server"))
     .map(() => client)
 }
