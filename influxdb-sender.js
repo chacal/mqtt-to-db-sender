@@ -6,6 +6,7 @@ const client = process.platform === 'linux' ? influxDBClient() : influxDBSimulat
 function influxDBClient() {
   return influx({
     host : process.env.INFLUXDB_HOST ? process.env.INFLUXDB_HOST : 'influxdb.chacal.online',
+    port : process.env.INFLUXDB_PORT ? process.env.INFLUXDB_PORT : 8086,
     protocol : 'https',
     username : process.env.INFLUXDB_USERNAME,
     password : process.env.INFLUXDB_PASSWORD,
