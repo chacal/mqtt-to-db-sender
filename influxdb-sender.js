@@ -1,62 +1,70 @@
-const influx = require('influx')
+const Influx = require('influx')
 const _ = require('lodash')
+const influxDBSimulator = {
+  writePoints: points => {
+    console.log('InfluxDB simulator writing points:', JSON.stringify(points))
+    return { 'catch': _.noop }
+  }
+}
 
-const client = process.platform === 'linux' ? influxDBClient() : influxDBSimulator()
+const client = process.platform === 'linux' ? influxDBClient() : influxDBSimulator
 
 function influxDBClient() {
-  return influx({
-    host : process.env.INFLUXDB_HOST ? process.env.INFLUXDB_HOST : 'influxdb.chacal.online',
-    port : process.env.INFLUXDB_PORT ? process.env.INFLUXDB_PORT : 8086,
+  return new Influx.InfluxDB({
+    host : process.env.INFLUXDB_HOST || 'influxdb.netserver.chacal.online',
+    port : process.env.INFLUXDB_PORT || 443,
     protocol : 'https',
-    username : process.env.INFLUXDB_USERNAME,
-    password : process.env.INFLUXDB_PASSWORD,
-    database : process.env.INFLUXDB_DB
+    database : process.env.INFLUXDB_DB || 'sensors_test',
+    username : process.env.INFLUXDB_USERNAME || 'influx',
+    password : process.env.INFLUXDB_PASSWORD
   })
 }
 
-function influxDBSimulator() { return { writeSeries: series => console.log('InfluxDB simulator writing series:', JSON.stringify(series)) } }
-
 function saveEvent(event) {
-  const series = sensorEventSeries(event)
+  const points = commonPoints(event)
 
   switch(event.tag) {
     case 't':
-      series.temperature = eventPoint(event, e => ({value: e.temperature}))
+      points.push(eventPoint('temperature', event, e => e.temperature))
       break;
     case 'p':
-      series.pressure = eventPoint(event, e => ({value: e.pressure}))
+      points.push(eventPoint('pressure', event, e => e.pressure))
       break;
     case 'h':
-      series.humidity = eventPoint(event, e => ({value: e.humidity}))
+      points.push(eventPoint('humidity', event, e => e.humidity))
       break;
     case 'c':
-      series.current = eventPoint(event, e => ({value: e.current}))
+      points.push(eventPoint('current', event, e => e.current))
       break;
     case 'w':
-      series.tankLevel = eventPoint(event, e => ({value: e.tankLevel}))
+      points.push(eventPoint('tankLevel', event, e => e.tankLevel))
       break;
     case 'e':
-      series.ampHours = eventPoint(event, e => ({value: e.ampHours}))
+      points.push(eventPoint('ampHours', event, e => e.ampHours))
       break;
   }
 
-  client.writeSeries(series, {}, (err, res) => {
-    if(err) {
-      console.log(err)
-    }
-  })
+  client.writePoints(points)
+    .catch(err => console.log(err))
 
-  function sensorEventSeries(event) {
-    return {
-      sensorVoltage: event.vcc ? eventPoint(event, e => ({value: e.vcc / 1000})) : undefined,
-      measurementDuration: event.previousSampleTimeMicros ? eventPoint(event, e => ({value: e.previousSampleTimeMicros / 1000 / 1000})) : undefined
-    }
+  function commonPoints(event) {
+    const temp = []
+    if(event.vcc)
+      temp.push(eventPoint("sensorVoltage", event, e => e.vcc / 1000))
+    if(event.previousSampleTimeMicros)
+      temp.push(eventPoint("measurementDuration", event, e => e.previousSampleTimeMicros / 1000 / 1000))
+    return temp
   }
 }
 
 
-function eventPoint(event, valuesExtractor) {
-  return [[_.assign({ time: event.ts }, valuesExtractor(event)), { instance: event.instance }]]
+function eventPoint(measurementName, event, valuesExtractor) {
+  return {
+    measurement: measurementName,
+    timestamp: new Date(event.ts),
+    tags: { instance: event.instance },
+    fields: { value: valuesExtractor(event) }
+  }
 }
 
 module.exports = {
