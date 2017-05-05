@@ -7,7 +7,7 @@ const client: InfluxDB = process.platform === 'linux' ? influxDBClient() : new I
 
 function influxDBClient() {
   return new InfluxDB({
-    host: process.env.INFLUXDB_HOST || 'influxdb.netserver.chacal.online',
+    host: process.env.INFLUXDB_HOST || 'influxdb.netserver.chacal.fi',
     port: process.env.INFLUXDB_PORT || 443,
     protocol: 'https',
     database: process.env.INFLUXDB_DB || 'sensors_test',
