@@ -15,7 +15,6 @@ declare module 'baconjs' {
 const MQTT_BROKER = process.env.MQTT_BROKER ? process.env.MQTT_BROKER : 'mqtt://mqtt-home.chacal.online'
 const MQTT_USERNAME = process.env.MQTT_USERNAME || undefined
 const MQTT_PASSWORD = process.env.MQTT_PASSWORD || undefined
-const INFLUX_WRITE_THROTTLE = 2000     // Keep at least this much time in ms between saving event from _the same instance & tag_
 
 
 startMqttClient(MQTT_BROKER, MQTT_USERNAME, MQTT_PASSWORD)
@@ -23,8 +22,6 @@ startMqttClient(MQTT_BROKER, MQTT_USERNAME, MQTT_PASSWORD)
     mqttClient.subscribe('/sensor/+/+/state')
     return Bacon.fromEvent(mqttClient, 'message', sensorEventFromMQTTMessage)
   })
-  .groupBy(event => event.instance + event.tag)                                                  // Group events by instance & tag
-  .flatMap(eventsByInstanceAndTag => eventsByInstanceAndTag.throttle(INFLUX_WRITE_THROTTLE))     // Throttle each instance + tag group individually
   .onValue(saveEventToInfluxDB)
 
 
