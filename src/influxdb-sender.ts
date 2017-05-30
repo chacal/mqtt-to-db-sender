@@ -53,6 +53,9 @@ function sensorPointFromEvent(event: Events.ISensorEvent): IPoint {
   else if(Events.isElectricEnergy(event)) {
     return eventPoint('ampHours', event, e => e.ampHours)
   }
+  else if(Events.isLevelReport(event)) {
+    return eventPoint('level', event, e => e.level)
+  }
 }
 
 function eventPoint<E extends Events.ISensorEvent>(measurementName: string, event: E, valuesExtractor: (event: E) => number): IPoint {

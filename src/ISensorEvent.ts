@@ -33,7 +33,11 @@ export interface IElectricEnergyEvent extends ISensorEventBase {
   readonly ampHours: number
 }
 
-export type ISensorEvent = ITemperatureEvent | IPressureEvent | IHumidityEvent | ICurrentEvent | ITankLevel | IElectricEnergyEvent
+export interface ILevelReportEvent extends ISensorEventBase {
+  readonly level: number
+}
+
+export type ISensorEvent = ITemperatureEvent | IPressureEvent | IHumidityEvent | ICurrentEvent | ITankLevel | IElectricEnergyEvent | ILevelReportEvent
 
 export default ISensorEvent
 
@@ -66,3 +70,6 @@ export function isElectricEnergy(event: ISensorEvent): event is IElectricEnergyE
   return (<IElectricEnergyEvent>event).tag === 'e';
 }
 
+export function isLevelReport(event: ISensorEvent): event is ILevelReportEvent {
+  return (<ILevelReportEvent>event).tag === 'r';
+}
