@@ -4,7 +4,7 @@ import Bacon = require('baconjs')
 import EventStream = Bacon.EventStream
 import saveEventToInfluxDB from './influxdb-sender'
 import Client = mqtt.Client
-import ISensorEvent from "./ISensorEvent"
+import { SensorEvents as Events } from "@chacal/js-utils"
 
 // Declare fromEvent() version thas is used with MQTT message handler
 declare module 'baconjs' {
@@ -35,6 +35,6 @@ function startMqttClient<A>(brokerUrl: string, username: string, password: strin
     .map(() => client)
 }
 
-function sensorEventFromMQTTMessage(topic: string, message: string): ISensorEvent {
-  return JSON.parse(message) as ISensorEvent
+function sensorEventFromMQTTMessage(topic: string, message: string): Events.ISensorEvent {
+  return JSON.parse(message) as Events.ISensorEvent
 }

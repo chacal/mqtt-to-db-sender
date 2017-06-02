@@ -1,6 +1,6 @@
 import {InfluxDB, IPoint} from 'influx'
 import _ = require('lodash')
-import * as Events from "./ISensorEvent"
+import { SensorEvents as Events } from "@chacal/js-utils"
 import InfluxDBSimulator from "./InfluxDbSimulator"
 
 const client: InfluxDB = process.platform === 'linux' ? influxDBClient() : new InfluxDBSimulator
