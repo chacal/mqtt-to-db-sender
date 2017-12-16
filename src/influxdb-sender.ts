@@ -1,6 +1,6 @@
 import {InfluxDB, IPoint} from 'influx'
 import _ = require('lodash')
-import { SensorEvents as Events } from "@chacal/js-utils"
+import {SensorEvents as Events} from "@chacal/js-utils"
 import InfluxDBSimulator from "./InfluxDbSimulator"
 
 const client: InfluxDB = process.platform === 'linux' ? influxDBClient() : new InfluxDBSimulator
@@ -31,6 +31,8 @@ function commonPoints(event): IPoint[] {
     temp.push(eventPoint("sensorVoltage", event, e => e.vcc / 1000))
   if(event.previousSampleTimeMicros)
     temp.push(eventPoint("measurementDuration", event, e => e.previousSampleTimeMicros / 1000 / 1000))
+  if(event.rssi !== undefined)
+    temp.push(eventPoint("rssi", event, e => e.rssi))
   return temp
 }
 
