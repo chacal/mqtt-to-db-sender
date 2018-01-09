@@ -25,7 +25,7 @@ startMqttClient(MQTT_BROKER, MQTT_USERNAME, MQTT_PASSWORD)
   .onValue(saveEventToInfluxDB)
 
 
-function startMqttClient<A>(brokerUrl: string, username: string, password: string): EventStream<A, Client> {
+function startMqttClient(brokerUrl: string, username: string, password: string): EventStream<{}, Client> {
   const client = mqtt.connect(brokerUrl, { username, password })
   client.on('connect', () => console.log('Connected to MQTT server'))
   client.on('offline', () => console.log('Disconnected from MQTT server'))
