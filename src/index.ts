@@ -5,6 +5,7 @@ import EventStream = Bacon.EventStream
 import saveEventToInfluxDB from './influxdb-sender'
 import Client = mqtt.Client
 import { SensorEvents as Events } from "@chacal/js-utils"
+import {Packet, PacketCallback, IPublishPacket} from "mqtt"
 
 // Declare fromEvent() version thas is used with MQTT message handler
 declare module 'baconjs' {
@@ -18,11 +19,10 @@ const MQTT_PASSWORD = process.env.MQTT_PASSWORD || undefined
 
 
 startMqttClient(MQTT_BROKER, MQTT_USERNAME, MQTT_PASSWORD)
-  .flatMapLatest(mqttClient => {
-    mqttClient.subscribe('/sensor/+/+/state')
-    return Bacon.fromEvent(mqttClient, 'message', sensorEventFromMQTTMessage)
+  .onValue(mqttClient => {
+    mqttClient.subscribe('/sensor/+/+/state', {qos: 1})
+    mqttClient.handleMessage = handleMqttPacket
   })
-  .onValue(saveEventToInfluxDB)
 
 
 function startMqttClient(brokerUrl: string, username: string, password: string): EventStream<{}, Client> {
@@ -35,6 +35,34 @@ function startMqttClient(brokerUrl: string, username: string, password: string):
     .map(() => client)
 }
 
-function sensorEventFromMQTTMessage(topic: string, message: string): Events.ISensorEvent {
+function handleMqttPacket(packet: Packet, cb: PacketCallback) {
+  if(packet.cmd === 'publish') {
+    handlePublishPacket(packet, cb)
+  } else {
+    console.log('Unknown packet received:', packet)
+    cb()
+  }
+
+  function handlePublishPacket(packet: IPublishPacket, cb: PacketCallback) {
+    try {
+      const event = sensorEventFromMQTTMessage(packet.payload.toString())
+      handleEvent(event, cb)
+    } catch(e) {
+      console.log('Unknown error, discarding message!', e)
+      cb()
+    }
+  }
+
+  function handleEvent(event: Events.ISensorEvent, cb: PacketCallback) {
+    saveEventToInfluxDB(event)
+      .then(() => cb())
+      .catch(e => {
+        console.log('Error writing to Influx, retrying..', e)
+        setTimeout(() => handleEvent(event, cb), 1000)
+      })
+  }
+}
+
+function sensorEventFromMQTTMessage(message: string): Events.ISensorEvent {
   return JSON.parse(message) as Events.ISensorEvent
 }

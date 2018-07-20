@@ -19,8 +19,7 @@ function influxDBClient() {
 export default function saveEvent(event: Events.ISensorEvent) {
   const points = _.filter(_.concat(commonPoints(event), sensorPointFromEvent(event)))
 
-  client.writePoints(points)
-    .catch(err => console.log(err))
+  return client.writePoints(points)
 }
 
 
