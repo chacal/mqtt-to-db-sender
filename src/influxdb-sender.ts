@@ -1,4 +1,4 @@
-import {InfluxDB, IPoint} from 'influx'
+import {InfluxDB, IPoint, ISingleHostConfig} from 'influx'
 import _ = require('lodash')
 import {SensorEvents as Events} from "@chacal/js-utils"
 import InfluxDBSimulator from "./InfluxDbSimulator"
@@ -13,7 +13,7 @@ function influxDBClient() {
     database: process.env.INFLUXDB_DB || 'sensors_test',
     username: process.env.INFLUXDB_USERNAME || 'influx',
     password: process.env.INFLUXDB_PASSWORD
-  })
+  } as ISingleHostConfig)
 }
 
 export default function saveEvent(event: Events.ISensorEvent) {
@@ -56,6 +56,9 @@ function sensorPointFromEvent(event: Events.ISensorEvent): IPoint {
   }
   else if(Events.isLevelReport(event)) {
     return eventPoint('level', event, e => e.level)
+  }
+  else if(Events.isPirEvent(event)) {
+    return eventPoint('motionDetected', event, e => e.motionDetected ? 1 : 0)
   }
 }
 
