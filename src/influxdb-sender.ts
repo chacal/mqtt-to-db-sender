@@ -63,10 +63,15 @@ function sensorPointFromEvent(event: Events.ISensorEvent): IPoint {
 }
 
 function eventPoint<E extends Events.ISensorEvent>(measurementName: string, event: E, valuesExtractor: (event: E) => number): IPoint {
-  return {
-    measurement: measurementName,
-    timestamp: new Date(event.ts),
-    tags: {instance: event.instance},
-    fields: {value: valuesExtractor(event)}
+  const value = valuesExtractor(event)
+  if(value !== undefined && value !== null) {
+    return {
+      measurement: measurementName,
+      timestamp: new Date(event.ts),
+      tags: {instance: event.instance},
+      fields: {value: valuesExtractor(event)}
+    }
+  } else {
+    return undefined
   }
 }
