@@ -60,6 +60,22 @@ function sensorPointFromEvent(event: Events.ISensorEvent): IPoint {
   else if(Events.isPirEvent(event)) {
     return eventPoint('motionDetected', event, e => e.motionDetected ? 1 : 0)
   }
+  else if(Events.isThreadDisplayStatus(event)) {
+    return {
+      measurement: 'threadParentInfo',
+      timestamp: new Date(event.ts),
+      tags: {
+        instance: event.instance,
+        parentRloc16: event.parent.rloc16
+      },
+      fields: {
+        linkQualityIn: event.parent.linkQualityIn,
+        linkQualityOut: event.parent.linkQualityOut,
+        avgRssi: event.parent.avgRssi,
+        latestRssi: event.parent.latestRssi
+      }
+    }
+  }
 }
 
 function eventPoint<E extends Events.ISensorEvent>(measurementName: string, event: E, valuesExtractor: (event: E) => number): IPoint {
