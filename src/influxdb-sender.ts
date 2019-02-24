@@ -1,7 +1,7 @@
 import {InfluxDB, IPoint, ISingleHostConfig} from 'influx'
 import _ = require('lodash')
-import {SensorEvents as Events} from "@chacal/js-utils"
-import InfluxDBSimulator from "./InfluxDbSimulator"
+import {SensorEvents as Events} from '@chacal/js-utils'
+import InfluxDBSimulator from './InfluxDbSimulator'
 
 const client: InfluxDB = process.platform === 'linux' ? influxDBClient() : new InfluxDBSimulator
 
@@ -23,44 +23,35 @@ export default function saveEvent(event: Events.ISensorEvent) {
 }
 
 
-
 function commonPoints(event): IPoint[] {
   const temp = []
   if(event.vcc)
-    temp.push(eventPoint("sensorVoltage", event, e => e.vcc / 1000))
+    temp.push(eventPoint('sensorVoltage', event, e => e.vcc / 1000))
   if(event.previousSampleTimeMicros)
-    temp.push(eventPoint("measurementDuration", event, e => e.previousSampleTimeMicros / 1000 / 1000))
+    temp.push(eventPoint('measurementDuration', event, e => e.previousSampleTimeMicros / 1000 / 1000))
   if(event.rssi !== undefined)
-    temp.push(eventPoint("rssi", event, e => e.rssi))
+    temp.push(eventPoint('rssi', event, e => e.rssi))
   return temp
 }
 
 function sensorPointFromEvent(event: Events.ISensorEvent): IPoint {
   if(Events.isTemperature(event)) {
     return eventPoint('temperature', event, e => e.temperature)
-  }
-  else if(Events.isPressure(event)) {
+  } else if(Events.isPressure(event)) {
     return eventPoint('pressure', event, e => e.pressure)
-  }
-  else if(Events.isHumidity(event)) {
+  } else if(Events.isHumidity(event)) {
     return eventPoint('humidity', event, e => e.humidity)
-  }
-  else if(Events.isCurrent(event)) {
+  } else if(Events.isCurrent(event)) {
     return eventPoint('current', event, e => e.current)
-  }
-  else if(Events.isTankLevel(event)) {
+  } else if(Events.isTankLevel(event)) {
     return eventPoint('tankLevel', event, e => e.tankLevel)
-  }
-  else if(Events.isElectricEnergy(event)) {
+  } else if(Events.isElectricEnergy(event)) {
     return eventPoint('ampHours', event, e => e.ampHours)
-  }
-  else if(Events.isLevelReport(event)) {
+  } else if(Events.isLevelReport(event)) {
     return eventPoint('level', event, e => e.level)
-  }
-  else if(Events.isPirEvent(event)) {
+  } else if(Events.isPirEvent(event)) {
     return eventPoint('motionDetected', event, e => e.motionDetected ? 1 : 0)
-  }
-  else if(Events.isThreadDisplayStatus(event)) {
+  } else if(Events.isThreadDisplayStatus(event)) {
     return {
       measurement: 'threadParentInfo',
       timestamp: new Date(event.ts),
