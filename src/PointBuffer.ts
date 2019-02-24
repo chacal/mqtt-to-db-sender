@@ -19,12 +19,7 @@ export default class PointBuffer {
 
   append(points: IPoint[]) {
     const bufferedPoints = points.map(p => ({point: p, bufferingTime: new Date()}))
-
-    this._buf = _(this._buf)
-      .concat(bufferedPoints)
-      .uniqWith((p1, p2) => _.isEqual(p1.point, p2.point))
-      .sortBy(bp => bp.bufferingTime)
-      .value()
+    this._buf = _.concat(this._buf, bufferedPoints)
   }
 
   points(): IPoint[] {

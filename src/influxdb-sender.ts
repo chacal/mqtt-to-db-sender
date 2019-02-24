@@ -21,10 +21,12 @@ function influxDBClient() {
   } as ISingleHostConfig)
 }
 
-export default function saveEvent(event: Events.ISensorEvent) {
+export function bufferEvent(event: Events.ISensorEvent): void {
   const newPoints = _.filter(_.concat(commonPoints(event), sensorPointFromEvent(event)))
   pointBuffer.append(newPoints)
+}
 
+export function sendBufferIfNeeded(): Promise<void> {
   if(pointBuffer.isFull() || pointBuffer.isTooOld()) {
     return client.writePoints(pointBuffer.points())
       .then(() => pointBuffer.clear())

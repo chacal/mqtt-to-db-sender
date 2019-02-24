@@ -2,7 +2,10 @@ import mqtt = require('mqtt')
 import process = require('process')
 import Bacon = require('baconjs')
 import EventStream = Bacon.EventStream
-import saveEventToInfluxDB from './influxdb-sender'
+import {
+  bufferEvent as bufferEventForInfluxDB,
+  sendBufferIfNeeded as sendInfluxDBBufferIfNeeded
+} from './influxdb-sender'
 import Client = mqtt.Client
 import {SensorEvents as Events} from '@chacal/js-utils'
 import {Packet, PacketCallback, IPublishPacket} from 'mqtt'
@@ -60,12 +63,15 @@ function handleMqttPacket(packet: Packet, cb: PacketCallback) {
     }
   }
 
-  function handleEvent(event: Events.ISensorEvent, cb: PacketCallback) {
-    saveEventToInfluxDB(event)
+  function handleEvent(event: Events.ISensorEvent, cb: PacketCallback, isRetry: boolean = false) {
+    if(!isRetry) {
+      bufferEventForInfluxDB(event)
+    }
+    sendInfluxDBBufferIfNeeded()
       .then(() => cb())
       .catch(e => {
         console.log('Error writing to Influx, retrying..', e.message)
-        setTimeout(() => handleEvent(event, cb), INFLUX_INSERT_RETRY_TIMEOUT_MS)
+        setTimeout(() => handleEvent(event, cb, true), INFLUX_INSERT_RETRY_TIMEOUT_MS)
       })
   }
 }
