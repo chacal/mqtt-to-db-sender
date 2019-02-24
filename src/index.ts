@@ -16,6 +16,7 @@ declare module 'baconjs' {
 const MQTT_BROKER = process.env.MQTT_BROKER ? process.env.MQTT_BROKER : 'mqtt://mqtt-home.chacal.fi'
 const MQTT_USERNAME = process.env.MQTT_USERNAME || undefined
 const MQTT_PASSWORD = process.env.MQTT_PASSWORD || undefined
+const INFLUX_INSERT_RETRY_TIMEOUT_MS = 5000
 
 
 startMqttClient(MQTT_BROKER, MQTT_USERNAME, MQTT_PASSWORD)
@@ -57,8 +58,8 @@ function handleMqttPacket(packet: Packet, cb: PacketCallback) {
     saveEventToInfluxDB(event)
       .then(() => cb())
       .catch(e => {
-        console.log('Error writing to Influx, retrying..', e)
-        setTimeout(() => handleEvent(event, cb), 1000)
+        console.log('Error writing to Influx, retrying..', e.message)
+        setTimeout(() => handleEvent(event, cb), INFLUX_INSERT_RETRY_TIMEOUT_MS)
       })
   }
 }
