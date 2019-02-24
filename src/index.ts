@@ -4,12 +4,12 @@ import Bacon = require('baconjs')
 import EventStream = Bacon.EventStream
 import saveEventToInfluxDB from './influxdb-sender'
 import Client = mqtt.Client
-import { SensorEvents as Events } from "@chacal/js-utils"
-import {Packet, PacketCallback, IPublishPacket} from "mqtt"
+import {SensorEvents as Events} from '@chacal/js-utils'
+import {Packet, PacketCallback, IPublishPacket} from 'mqtt'
 
 // Declare fromEvent() version thas is used with MQTT message handler
 declare module 'baconjs' {
-  function fromEvent<E, A>(target: EventTarget|NodeJS.EventEmitter|JQuery, eventName: string, eventTransformer: (t: string, m: string) => A): EventStream<E, A>;
+  function fromEvent<E, A>(target: EventTarget | NodeJS.EventEmitter | JQuery, eventName: string, eventTransformer: (t: string, m: string) => A): EventStream<E, A>;
 }
 
 
@@ -54,7 +54,7 @@ function handleMqttPacket(packet: Packet, cb: PacketCallback) {
     try {
       const event = sensorEventFromMQTTMessage(packet.payload.toString())
       handleEvent(event, cb)
-    } catch(e) {
+    } catch (e) {
       console.log('Unknown error, discarding message!', e)
       cb()
     }
