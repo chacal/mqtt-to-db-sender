@@ -2,8 +2,13 @@ import {InfluxDB, IPoint, ISingleHostConfig} from 'influx'
 import _ = require('lodash')
 import {SensorEvents as Events} from '@chacal/js-utils'
 import InfluxDBSimulator from './InfluxDbSimulator'
+import PointBuffer from './PointBuffer'
+
+const INFLUX_BUFFER_MAX_ITEM_COUNT = 1000
+const INFLUX_BUFFER_MAX_AGE_MS = 3000
 
 const client: InfluxDB = process.platform === 'linux' ? influxDBClient() : new InfluxDBSimulator
+const pointBuffer = new PointBuffer(INFLUX_BUFFER_MAX_ITEM_COUNT, INFLUX_BUFFER_MAX_AGE_MS)
 
 function influxDBClient() {
   return new InfluxDB({
@@ -17,9 +22,15 @@ function influxDBClient() {
 }
 
 export default function saveEvent(event: Events.ISensorEvent) {
-  const points = _.filter(_.concat(commonPoints(event), sensorPointFromEvent(event)))
+  const newPoints = _.filter(_.concat(commonPoints(event), sensorPointFromEvent(event)))
+  pointBuffer.append(newPoints)
 
-  return client.writePoints(points)
+  if(pointBuffer.isFull() || pointBuffer.isTooOld()) {
+    return client.writePoints(pointBuffer.points())
+      .then(() => pointBuffer.clear())
+  } else {
+    return Promise.resolve()
+  }
 }
 
 
