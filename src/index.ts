@@ -16,6 +16,7 @@ declare module 'baconjs' {
 const MQTT_BROKER = process.env.MQTT_BROKER ? process.env.MQTT_BROKER : 'mqtt://mqtt-home.chacal.fi'
 const MQTT_USERNAME = process.env.MQTT_USERNAME || undefined
 const MQTT_PASSWORD = process.env.MQTT_PASSWORD || undefined
+const MQTT_CLIENT_ID = 'mqtt-to-influxdb-sender'
 const INFLUX_INSERT_RETRY_TIMEOUT_MS = 5000
 
 
@@ -27,7 +28,12 @@ startMqttClient(MQTT_BROKER, MQTT_USERNAME, MQTT_PASSWORD)
 
 
 function startMqttClient(brokerUrl: string, username: string, password: string): EventStream<{}, Client> {
-  const client = mqtt.connect(brokerUrl, { username, password })
+  const client = mqtt.connect(brokerUrl, {
+    username,
+    password,
+    clientId: MQTT_CLIENT_ID,
+    clean: false
+  })
   client.on('connect', () => console.log('Connected to MQTT server'))
   client.on('offline', () => console.log('Disconnected from MQTT server'))
   client.on('error', (e) => console.log('MQTT client error', e))
