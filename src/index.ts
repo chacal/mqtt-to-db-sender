@@ -10,12 +10,6 @@ import Client = mqtt.Client
 import {SensorEvents as Events} from '@chacal/js-utils'
 import {Packet, PacketCallback, IPublishPacket} from 'mqtt'
 
-// Declare fromEvent() version thas is used with MQTT message handler
-declare module 'baconjs' {
-  function fromEvent<E, A>(target: EventTarget | NodeJS.EventEmitter | JQuery, eventName: string, eventTransformer: (t: string, m: string) => A): EventStream<E, A>;
-}
-
-
 const MQTT_BROKER = process.env.MQTT_BROKER ? process.env.MQTT_BROKER : 'mqtt://mqtt-home.chacal.fi'
 const MQTT_USERNAME = process.env.MQTT_USERNAME || undefined
 const MQTT_PASSWORD = process.env.MQTT_PASSWORD || undefined
@@ -30,7 +24,7 @@ startMqttClient(MQTT_BROKER, MQTT_USERNAME, MQTT_PASSWORD)
   })
 
 
-function startMqttClient(brokerUrl: string, username: string, password: string): EventStream<{}, Client> {
+function startMqttClient(brokerUrl: string, username: string, password: string): EventStream<Client> {
   const client = mqtt.connect(brokerUrl, {
     username,
     password,
