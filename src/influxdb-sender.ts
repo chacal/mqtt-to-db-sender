@@ -79,6 +79,8 @@ function sensorPointFromEvent(event: Events.ISensorEvent): IPoint {
         latestRssi: event.parent.latestRssi
       }
     }
+  } else if (Events.isImpulseEvent(event)) {
+    return eventPoint('impulse', event, e => 1)
   }
 }
 

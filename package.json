@@ -9,7 +9,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@chacal/js-utils": "^1.15.2",
+    "@chacal/js-utils": "^1.16.0",
     "baconjs": "^3.0.10",
     "canvas": "^2.6.0",
     "influx": "^5.4.2",
