@@ -1,4 +1,4 @@
-import {IPoint} from 'influx'
+import { IPoint } from 'influx'
 import _ = require('lodash')
 
 interface IBufferedPoint {
@@ -18,7 +18,7 @@ export default class PointBuffer {
   }
 
   append(points: IPoint[]) {
-    const bufferedPoints = points.map(p => ({point: p, bufferingTime: new Date()}))
+    const bufferedPoints = points.map(p => ({ point: p, bufferingTime: new Date() }))
     this._buf = _.concat(this._buf, bufferedPoints)
   }
 

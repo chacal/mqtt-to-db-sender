@@ -7,8 +7,8 @@ import {
   sendBufferIfNeeded as sendInfluxDBBufferIfNeeded
 } from './influxdb-sender'
 import Client = mqtt.Client
-import {SensorEvents as Events} from '@chacal/js-utils'
-import {Packet, PacketCallback, IPublishPacket} from 'mqtt'
+import { SensorEvents as Events } from '@chacal/js-utils'
+import { Packet, PacketCallback, IPublishPacket } from 'mqtt'
 
 const MQTT_BROKER = process.env.MQTT_BROKER ? process.env.MQTT_BROKER : 'mqtt://mqtt-home.chacal.fi'
 const MQTT_USERNAME = process.env.MQTT_USERNAME || undefined
@@ -19,7 +19,7 @@ const INFLUX_INSERT_RETRY_TIMEOUT_MS = 5000
 
 startMqttClient(MQTT_BROKER, MQTT_USERNAME, MQTT_PASSWORD)
   .onValue(mqttClient => {
-    mqttClient.subscribe('/sensor/+/+/state', {qos: 1})
+    mqttClient.subscribe('/sensor/+/+/state', { qos: 1 })
     mqttClient.handleMessage = handleMqttPacket
   })
 
@@ -40,7 +40,7 @@ function startMqttClient(brokerUrl: string, username: string, password: string):
 }
 
 function handleMqttPacket(packet: Packet, cb: PacketCallback) {
-  if(packet.cmd === 'publish') {
+  if (packet.cmd === 'publish') {
     handlePublishPacket(packet, cb)
   } else {
     console.log('Unknown packet received:', packet)
@@ -58,7 +58,7 @@ function handleMqttPacket(packet: Packet, cb: PacketCallback) {
   }
 
   function handleEvent(event: Events.ISensorEvent, cb: PacketCallback, isRetry: boolean = false) {
-    if(!isRetry) {
+    if (!isRetry) {
       bufferEventForInfluxDB(event)
     }
     sendInfluxDBBufferIfNeeded()
