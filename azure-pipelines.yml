@@ -1,0 +1,18 @@
+trigger:
+  - prod
+
+jobs:
+  - job: build
+    displayName: Build container
+    pool:
+      vmImage: 'ubuntu-latest'
+    steps:
+      - script: echo ${DOCKERHUB_PASSWORD} | docker login -u ${DOCKERHUB_USERNAME} --password-stdin
+        displayName: 'docker login'
+        env:
+          DOCKERHUB_USERNAME: $(DOCKERHUB_USERNAME)
+          DOCKERHUB_PASSWORD: $(DOCKERHUB_PASSWORD)
+      - script: docker build . -t jihartik/mqtt-to-influxdb-sender:latest
+        displayName: 'build container'
+      - script: docker push jihartik/mqtt-to-influxdb-sender:latest
+        displayName: 'push container'
