@@ -12,7 +12,7 @@ jobs:
         env:
           DOCKERHUB_USERNAME: $(DOCKERHUB_USERNAME)
           DOCKERHUB_PASSWORD: $(DOCKERHUB_PASSWORD)
-      - script: docker build . -t jihartik/mqtt-to-influxdb-sender:latest
+      - script: docker build . -t jihartik/mqtt-to-db-sender:latest
         displayName: 'build container'
-      - script: docker push jihartik/mqtt-to-influxdb-sender:latest
+      - script: docker push jihartik/mqtt-to-db-sender:latest
         displayName: 'push container'
