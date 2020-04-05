@@ -32,7 +32,8 @@ export default class ClickHouseSender implements DbSender {
     console.log(formatDbConfig(config))
     this.client = new Clickhouse(Object.assign({}, config, {
       user: config.username,
-      queryOptions: { database: config.database }
+      queryOptions: { database: config.database },
+      protocol: 'https:'
     }))
   }
 
