@@ -1,75 +1,38 @@
-import mqtt = require('mqtt')
 import process = require('process')
-import Bacon = require('baconjs')
-import EventStream = Bacon.EventStream
-import {
-  bufferEvent as bufferEventForInfluxDB,
-  sendBufferIfNeeded as sendInfluxDBBufferIfNeeded
-} from './influxdb-sender'
-import Client = mqtt.Client
-import { SensorEvents as Events } from '@chacal/js-utils'
-import { Packet, PacketCallback, IPublishPacket } from 'mqtt'
+import MqttToDbBridge from './MqttToDbBridge'
+import ClickHouseSender from './clickhouse-sender'
+import InfluxdbSender from './influxdb-sender'
+import { formatPw } from './utils'
 
 const MQTT_BROKER = process.env.MQTT_BROKER ? process.env.MQTT_BROKER : 'mqtt://mqtt-home.chacal.fi'
 const MQTT_USERNAME = process.env.MQTT_USERNAME || undefined
 const MQTT_PASSWORD = process.env.MQTT_PASSWORD || undefined
-const MQTT_CLIENT_ID = 'mqtt-to-influxdb-sender'
-const INFLUX_INSERT_RETRY_TIMEOUT_MS = 5000
+const MQTT_CLIENT_ID = process.env.MQTT_CLIENT_ID || 'mqtt-to-db-sender'
+const DB_TYPE = process.env.DB_TYPE || 'influxdb'
+
+const DB_HOST = process.env.DB_HOST
+const DB_PORT = parseInt(process.env.DB_PORT)
+const DB_USERNAME = process.env.DB_USERNAME
+const DB_PASSWORD = process.env.DB_PASSWORD
+const DB_NAME = process.env.DB_NAME
 
 
-startMqttClient(MQTT_BROKER, MQTT_USERNAME, MQTT_PASSWORD)
-  .onValue(mqttClient => {
-    mqttClient.subscribe('/sensor/+/+/state', { qos: 1 })
-    mqttClient.handleMessage = handleMqttPacket
-  })
+console.log('Using configuration:')
+console.log('MQTT_BROKER:'.padEnd(17), MQTT_BROKER)
+console.log('MQTT_USERNAME:'.padEnd(17), MQTT_USERNAME)
+console.log('MQTT_PASSWORD:'.padEnd(17), formatPw(MQTT_PASSWORD))
+console.log('MQTT_CLIENT_ID:'.padEnd(17), MQTT_CLIENT_ID)
+console.log('DB_TYPE:'.padEnd(17), DB_TYPE)
 
 
-function startMqttClient(brokerUrl: string, username: string, password: string): EventStream<Client> {
-  const client = mqtt.connect(brokerUrl, {
-    username,
-    password,
-    clientId: MQTT_CLIENT_ID,
-    clean: false
-  })
-  client.on('connect', () => console.log('Connected to MQTT server'))
-  client.on('offline', () => console.log('Disconnected from MQTT server'))
-  client.on('error', (e) => console.log('MQTT client error', e))
-
-  return Bacon.fromEvent(client, 'connect').first()
-    .map(() => client)
+const dbConfig = {
+  host: DB_HOST,
+  port: DB_PORT,
+  username: DB_USERNAME,
+  password: DB_PASSWORD,
+  database: DB_NAME
 }
+const db = DB_TYPE === 'influxdb' ? new InfluxdbSender(dbConfig) : new ClickHouseSender(dbConfig)
+const mqttToDb = new MqttToDbBridge(MQTT_BROKER, MQTT_USERNAME, MQTT_PASSWORD, MQTT_CLIENT_ID, db)
 
-function handleMqttPacket(packet: Packet, cb: PacketCallback) {
-  if (packet.cmd === 'publish') {
-    handlePublishPacket(packet, cb)
-  } else {
-    console.log('Unknown packet received:', packet)
-    cb()
-  }
-
-  function handlePublishPacket(packet: IPublishPacket, cb: PacketCallback) {
-    try {
-      const event = sensorEventFromMQTTMessage(packet.payload.toString())
-      handleEvent(event, cb)
-    } catch (e) {
-      console.log('Unknown error, discarding message!', e)
-      cb()
-    }
-  }
-
-  function handleEvent(event: Events.ISensorEvent, cb: PacketCallback, isRetry: boolean = false) {
-    if (!isRetry) {
-      bufferEventForInfluxDB(event)
-    }
-    sendInfluxDBBufferIfNeeded()
-      .then(() => cb())
-      .catch(e => {
-        console.log('Error writing to Influx, retrying..', e.message)
-        setTimeout(() => handleEvent(event, cb, true), INFLUX_INSERT_RETRY_TIMEOUT_MS)
-      })
-  }
-}
-
-function sensorEventFromMQTTMessage(message: string): Events.ISensorEvent {
-  return JSON.parse(message) as Events.ISensorEvent
-}
+mqttToDb.start()

@@ -9,6 +9,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@apla/clickhouse": "^1.6.2",
     "@chacal/js-utils": "^1.17.1",
     "baconjs": "^3.0.12",
     "canvas": "^2.6.1",

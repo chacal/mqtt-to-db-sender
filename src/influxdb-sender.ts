@@ -1,40 +1,41 @@
-import { InfluxDB, IPoint, ISingleHostConfig } from 'influx'
+import { InfluxDB, IPoint } from 'influx'
 import _ = require('lodash')
-import { SensorEvents as Events } from '@chacal/js-utils'
+import { SensorEvents, SensorEvents as Events } from '@chacal/js-utils'
 import InfluxDBSimulator from './InfluxDbSimulator'
-import PointBuffer from './PointBuffer'
+import DataBuffer from './DataBuffer'
+import DbSender, { DbConfig } from './DbSender'
+import { formatDbConfig } from './utils'
 
 const INFLUX_BUFFER_MAX_ITEM_COUNT = 1000
-const INFLUX_BUFFER_MAX_AGE_MS = 3000
+const INFLUX_BUFFER_MAX_AGE_MS = 5000
 
-const client: InfluxDB = process.platform === 'linux' ? influxDBClient() : new InfluxDBSimulator
-const pointBuffer = new PointBuffer(INFLUX_BUFFER_MAX_ITEM_COUNT, INFLUX_BUFFER_MAX_AGE_MS)
+export default class InfluxdbSender implements DbSender {
+  private readonly pointBuffer = new DataBuffer<IPoint>(INFLUX_BUFFER_MAX_ITEM_COUNT, INFLUX_BUFFER_MAX_AGE_MS)
+  private client: InfluxDB
 
-function influxDBClient() {
-  return new InfluxDB({
-    host: process.env.INFLUXDB_HOST || 'influxdb.netserver.chacal.fi',
-    port: process.env.INFLUXDB_PORT || 443,
-    protocol: 'https',
-    database: process.env.INFLUXDB_DB || 'sensors_test',
-    username: process.env.INFLUXDB_USERNAME || 'influx',
-    password: process.env.INFLUXDB_PASSWORD
-  } as ISingleHostConfig)
-}
+  constructor(config: DbConfig) {
+    console.log(formatDbConfig(config))
+    this.client = process.platform === 'linux' ? influxDBClient(config) : new InfluxDBSimulator
+  }
 
-export function bufferEvent(event: Events.ISensorEvent): void {
-  const newPoints = _.filter(_.concat(commonPoints(event), sensorPointFromEvent(event)))
-  pointBuffer.append(newPoints)
-}
+  bufferEvent(event: SensorEvents.ISensorEvent): void {
+    const newPoints = _.filter(_.concat(commonPoints(event), sensorPointFromEvent(event)))
+    this.pointBuffer.append(newPoints)
+  }
 
-export function sendBufferIfNeeded(): Promise<void> {
-  if (pointBuffer.isFull() || pointBuffer.isTooOld()) {
-    return client.writePoints(pointBuffer.points())
-      .then(() => pointBuffer.clear())
-  } else {
-    return Promise.resolve()
+  insertBufferIfNeeded(): Promise<void> {
+    if (this.pointBuffer.isFull() || this.pointBuffer.isTooOld()) {
+      return this.client.writePoints(this.pointBuffer.data())
+        .then(() => this.pointBuffer.clear())
+    } else {
+      return Promise.resolve()
+    }
   }
 }
 
+function influxDBClient(config: DbConfig) {
+  return new InfluxDB(Object.assign({}, config, { protocol: 'https' }))
+}
 
 function commonPoints(event): IPoint[] {
   const temp = []
