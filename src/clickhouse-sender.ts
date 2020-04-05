@@ -68,7 +68,7 @@ export default class ClickHouseSender implements DbSender {
   }
 
   ensureTable(): Promise<void> {
-    console.log('Creating table')
+    console.log('Ensuring table exists')
     return this.client.querying(`
       CREATE TABLE IF NOT EXISTS measurements (
           ts             DateTime64(3) Codec(DoubleDelta, LZ4),
