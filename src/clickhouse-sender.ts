@@ -72,12 +72,13 @@ export default class ClickHouseSender implements DbSender {
     return this.client.querying(`
       CREATE TABLE IF NOT EXISTS measurements (
           ts             DateTime64(3) Codec(DoubleDelta, LZ4),
+          dt             DateTime MATERIALIZED toDateTime(toUInt64(round(toDecimal64(ts, 3)))) Codec(DoubleDelta, LZ4),
           instance       LowCardinality(String),
           metric_names   Array(LowCardinality(String)),
           metric_values  Array(Float32) Codec(Gorilla, LZ4)
       ) ENGINE = MergeTree()
-      PARTITION BY toYYYYMM(ts)
-      ORDER BY (ts, instance)
+      PARTITION BY toYYYYMM(dt)
+      ORDER BY (dt, instance)
     `)
   }
 }
