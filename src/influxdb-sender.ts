@@ -19,7 +19,7 @@ export default class InfluxdbSender implements DbSender {
   }
 
   bufferEvent(event: SensorEvents.ISensorEvent): void {
-    const newPoints = _.filter(_.concat(commonPoints(event), sensorPointFromEvent(event)))
+    const newPoints = _.filter(_.concat(commonPoints(event), sensorPointsFromEvent(event)))
     this.pointBuffer.append(newPoints)
   }
 
@@ -48,13 +48,19 @@ function commonPoints(event): IPoint[] {
   return temp
 }
 
-function sensorPointFromEvent(event: Events.ISensorEvent): IPoint {
+function sensorPointsFromEvent(event: Events.ISensorEvent): IPoint | IPoint[] {
   if (Events.isTemperature(event)) {
     return eventPoint('temperature', event, e => e.temperature)
   } else if (Events.isPressure(event)) {
     return eventPoint('pressure', event, e => e.pressure)
   } else if (Events.isHumidity(event)) {
     return eventPoint('humidity', event, e => e.humidity)
+  } else if (Events.isEnvironment(event)) {
+    return [
+      eventPoint('temperature', event, e => e.temperature),
+      eventPoint('pressure', event, e => e.pressure),
+      eventPoint('humidity', event, e => e.humidity)
+    ]
   } else if (Events.isCurrent(event)) {
     return eventPoint('current', event, e => e.current)
   } else if (Events.isTankLevel(event)) {

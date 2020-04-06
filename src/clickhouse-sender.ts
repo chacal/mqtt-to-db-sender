@@ -24,7 +24,7 @@ interface Metric {
 
 
 export default class ClickHouseSender implements DbSender {
-  private client: Clickhouse
+  private readonly client: Clickhouse
   private readonly buffer = new DataBuffer<MeasurementRow>(BUFFER_MAX_ITEM_COUNT, BUFFER_MAX_AGE_MS)
   private tableCreated = false
 
@@ -122,6 +122,12 @@ function sensorMetricFromEvent(event: Events.ISensorEvent): Metric | Metric[] {
     return eventMetric('pressure', event, e => e.pressure)
   } else if (Events.isHumidity(event)) {
     return eventMetric('humidity', event, e => e.humidity)
+  } else if (Events.isEnvironment(event)) {
+    return [
+      eventMetric('temperature', event, e => e.temperature),
+      eventMetric('pressure', event, e => e.pressure),
+      eventMetric('humidity', event, e => e.humidity)
+    ]
   } else if (Events.isCurrent(event)) {
     return eventMetric('current', event, e => e.current)
   } else if (Events.isTankLevel(event)) {
