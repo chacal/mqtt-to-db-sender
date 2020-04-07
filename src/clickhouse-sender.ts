@@ -78,7 +78,7 @@ export default class ClickHouseSender implements DbSender {
           metric_values  Array(Float32) Codec(Gorilla, LZ4)
       ) ENGINE = MergeTree()
       PARTITION BY toYYYYMM(dt)
-      ORDER BY (dt, instance)
+      ORDER BY (instance, dt)
     `)
   }
 }
