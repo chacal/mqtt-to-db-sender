@@ -76,7 +76,7 @@ export default class ClickHouseSender implements DbSender {
           instance       LowCardinality(String),
           metric_names   Array(LowCardinality(String)),
           metric_values  Array(Float32) Codec(Gorilla, LZ4)
-      ) ENGINE = MergeTree()
+      ) ENGINE = ReplicatedMergeTree('/clickhouse/tables/{shard}/measurements', '{replica}')
       PARTITION BY toYYYYMM(dt)
       ORDER BY (instance, dt)
     `)
