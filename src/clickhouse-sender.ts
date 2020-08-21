@@ -75,7 +75,7 @@ export default class ClickHouseSender implements DbSender {
           dt             DateTime MATERIALIZED toDateTime(toUInt64(round(toDecimal64(ts, 3)))) Codec(DoubleDelta, LZ4),
           instance       LowCardinality(String),
           metric_names   Array(LowCardinality(String)),
-          metric_values  Array(Float32) Codec(Gorilla, LZ4)
+          metric_values  Array(Float32) Codec(LZ4)
       ) ENGINE = ReplicatedMergeTree('/clickhouse/tables/{shard}/measurements', '{replica}')
       PARTITION BY toYYYYMM(dt)
       ORDER BY (instance, dt)
