@@ -9,17 +9,16 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@apla/clickhouse": "^1.6.2",
-    "@chacal/js-utils": "^1.20.0",
-    "baconjs": "^3.0.12",
-    "canvas": "^2.6.1",
-    "influx": "^5.5.1",
-    "lodash": "^4.17.19",
+    "@apla/clickhouse": "^1.6.3",
+    "@chacal/js-utils": "^2.1.0",
+    "baconjs": "^3.0.13",
+    "influx": "^5.6.3",
+    "lodash": "^4.17.20",
     "mqtt": "^3.0.0",
-    "typescript": "^3.8.3"
+    "typescript": "^3.9.7"
   },
   "devDependencies": {
-    "@types/lodash": "^4.14.149",
-    "@types/node": "^12.12.34"
+    "@types/lodash": "^4.14.159",
+    "@types/node": "^12.12.54"
   }
 }

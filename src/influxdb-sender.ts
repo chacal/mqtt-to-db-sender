@@ -34,7 +34,7 @@ export default class InfluxdbSender implements DbSender {
 }
 
 function influxDBClient(config: DbConfig) {
-  return new InfluxDB(Object.assign({}, config, { protocol: 'https' }))
+  return new InfluxDB(Object.assign({}, config, { protocol: 'https' as 'https' }))
 }
 
 function commonPoints(event): IPoint[] {
