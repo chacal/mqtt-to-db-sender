@@ -19,8 +19,11 @@ export default class InfluxdbSender implements DbSender {
   }
 
   bufferEvent(event: SensorEvents.ISensorEvent): void {
-    const newPoints = _.filter(_.concat(commonPoints(event), sensorPointsFromEvent(event)))
-    this.pointBuffer.append(newPoints)
+    const sensorPoints = sensorPointsFromEvent(event)
+    if (sensorPoints !== undefined) {
+      const newPoints = _.filter(_.concat(commonPoints(event), sensorPoints))
+      this.pointBuffer.append(newPoints)
+    }
   }
 
   insertBufferIfNeeded(): Promise<void> {

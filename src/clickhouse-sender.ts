@@ -38,14 +38,17 @@ export default class ClickHouseSender implements DbSender {
   }
 
   bufferEvent(event: Events.ISensorEvent): void {
-    const metrics = _.filter(_.concat(commonMetrics(event), sensorMetricFromEvent(event)))
-    const row = {
-      ts: new Date(event.ts).getTime(),
-      instance: event.instance,
-      metric_names: metrics.map(m => m.name),
-      metric_values: metrics.map(m => m.value)
+    const sensorMetrics = sensorMetricFromEvent(event)
+    if (sensorMetrics !== undefined) {
+      const metrics = _.filter(_.concat(commonMetrics(event), sensorMetrics))
+      const row = {
+        ts: new Date(event.ts).getTime(),
+        instance: event.instance,
+        metric_names: metrics.map(m => m.name),
+        metric_values: metrics.map(m => m.value)
+      }
+      this.buffer.append([row])
     }
-    this.buffer.append([row])
   }
 
   insertBufferIfNeeded(): Promise<void> {
