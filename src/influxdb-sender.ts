@@ -91,6 +91,8 @@ function sensorPointsFromEvent(event: Events.ISensorEvent): IPoint | IPoint[] {
     }
   } else if (Events.isImpulseEvent(event)) {
     return eventPoint('impulse', event, e => 1)
+  } else if (Events.isVoltageEvent(event)) {
+    return [] // No specific fields, return empty array so that common fields are added
   }
 }
 
