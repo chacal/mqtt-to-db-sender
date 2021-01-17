@@ -39,6 +39,6 @@ export default class DataBuffer<T> {
 
   isTooOld(): boolean {
     const oldestEventAge = () => new Date().getTime() - this._buf[0].bufferingTime.getTime()
-    return this.size() >= 0 && oldestEventAge() >= this._maxAgeMs
+    return this.size() > 0 && oldestEventAge() >= this._maxAgeMs
   }
 }
