@@ -166,6 +166,8 @@ function sensorMetricFromEvent(event: Events.ISensorEvent): Metric | Metric[] {
     ]
   } else if (Events.isImpulseEvent(event)) {
     return eventMetric('impulse', event, e => 1)
+  } else if (Events.isVoltageEvent(event)) {
+    return [] // No specific fields, return empty array so that common fields are added
   }
 }
 
