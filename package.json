@@ -13,7 +13,7 @@
     "@chacal/js-utils": "^4.3.0",
     "baconjs": "^3.0.15",
     "influx": "^5.6.3",
-    "lodash": "^4.17.20",
+    "lodash": "^4.17.21",
     "mqtt": "^3.0.0",
     "typescript": "^3.9.7"
   },
